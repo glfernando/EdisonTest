@@ -8,45 +8,25 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:text="@string/hello_world"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/textView" />
-
-        <ListView
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:id="@+id/listView"
-            android:layout_centerHorizontal="true"
-            />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
             android:orientation="horizontal">
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ON"
+                android:text="@string/on_button"
                 android:id="@+id/button_on"
                 android:layout_marginBottom="77dp" />
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="off"
+                android:text="@string/off_button"
                 android:id="@+id/button_off"
                 />
         </LinearLayout>
-
-        <SeekBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/seekBar"
-            android:layout_marginBottom="62dp"
-            />
 
     </LinearLayout>
 </FrameLayout>
