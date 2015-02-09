@@ -1,32 +1,50 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/on_button"
+        android:id="@+id/button_on"
+        android:onClick="onClickOn"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/off_button"
+        android:id="@+id/button_off"
+        android:onClick="onClickOff"
+        android:layout_gravity="right"
+        android:layout_alignTop="@+id/button_on"
+        android:layout_alignParentEnd="true" />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/on_button"
-                android:id="@+id/button_on"
-                android:layout_marginBottom="77dp" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="Status"
+        android:id="@+id/textView2"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/off_button"
-                android:id="@+id/button_off"
-                />
-        </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:id="@+id/textViewStatus"
+        android:layout_below="@+id/textView2"
+        android:layout_centerHorizontal="true"
+        android:onClick="onClickStatus"/>
 
-    </LinearLayout>
-</FrameLayout>
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinnerBt"
+        android:layout_below="@+id/textViewStatus"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>

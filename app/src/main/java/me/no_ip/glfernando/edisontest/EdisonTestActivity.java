@@ -11,7 +11,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,79 +32,38 @@ public class EdisonTestActivity extends Activity {
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothSocket btSocket = null;
     private OutputStream outStream = null;
+    private boolean connected = false;
+    private Set<BluetoothDevice> pairedDevices;
+    private static BluetoothDevice device;
+    private static int currentPosition = -1;
     // Well known SPP UUID
     //private static final UUID MY_UUID =
     //       UUID.fromString("00001101-0000-1000-8000-00805F9B34FF");
     private static final UUID MY_UUID =
             UUID.fromString("00000000-0000-0000-0000-0000CDAB0000");
-    Button on, off;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
-        setContentView(R.layout.activity_edison_test);
-
-        on = (Button) findViewById(R.id.button_on);
-        off = (Button) findViewById(R.id.button_off);
-
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            Log.e(TAG, "No bluetooth device");
-            finish();
-        }
-
-        on.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                sendData("1");
-            }
-        });
-
-        off.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                sendData("0");
-            }
-        });
+    public void onClickOn(View v) {
+        sendData("1");
     }
 
-    @Override
-    public void onStart()
-    {
-        super.onStart();
-        Log.d(TAG, "onStart");
+    public void onClickOff(View v) {
+        sendData("0");
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume");
-        ArrayList<String> mArrayAdapter = new ArrayList<String>();
-        BluetoothDevice device = null;
+    public void onClickStatus(View v) {
+        //
+    }
 
+    public void onClickGPIO(View v) {
+        Intent i = new Intent(EdisonTestActivity.this, GpioActivity.class);
+        startActivity(i);
+    }
 
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, 1);
-        }
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        // If there are paired devices
-        if (pairedDevices.size() > 0) {
-            // Loop through paired devices
-            for (BluetoothDevice bt : pairedDevices) {
-                // Add the name and address to an array adapter to show in a ListView
-                //mArrayAdapter.add(bt.getName() + "\n" + bt.getAddress());
-                Log.i(TAG, bt.getName() + " " + bt.getAddress());
-                //if (bt.getName().equalsIgnoreCase("HC-06")) {
-                if (bt.getName().equalsIgnoreCase("BlueZ 5.18")) {
-                    //if (bt.getName().equalsIgnoreCase("lenovo-lap-0")) {
-                    device = bt;
-                    break;
-                }
-            }
-        } else {
-            Log.e(TAG, "no device to pair");
-            finish();
-        }
+    public void connect() {
+        Button off = (Button)findViewById(R.id.button_off);
+        Button on = (Button)findViewById(R.id.button_on);
+        TextView textView = (TextView) findViewById(R.id.textViewStatus);
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerBt);
 
         try {
             btSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
@@ -106,10 +72,9 @@ public class EdisonTestActivity extends Activity {
             finish();
         }
 
+        Log.e(TAG, "...Connecting to Remote ..." + device.getName());
 
-        Log.e(TAG, "...Connecting to Remote 1 ..." + device.getName());
 
-        mBluetoothAdapter.cancelDiscovery();
 
         if (!btSocket.isConnected()) {
             try {
@@ -120,6 +85,10 @@ public class EdisonTestActivity extends Activity {
                 try {
                     Log.e(TAG, "Error connecting :( closing " + e.getMessage());
                     btSocket.close();
+                    Toast.makeText(getApplicationContext(), "Error connecting", Toast.LENGTH_SHORT).show();
+                    spinner.setSelection(0);
+                    currentPosition = -1;
+                    return;
                 } catch (IOException e2) {
                     Log.e(TAG, "Fatal Error In onResume() and unable to close socket during connection failure" + e2.getMessage());
                     finish();
@@ -134,15 +103,20 @@ public class EdisonTestActivity extends Activity {
         } catch (IOException e) {
             Log.e(TAG, "Fatal Error In onResume() and output stream creation failed:" + e.getMessage());
         }
-
+        connected = true;
+        on.setEnabled(true);
+        off.setEnabled(true);
+        textView.setText("Connected");
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d(TAG, "onPause");
+    public void disconnect() {
+        Button off = (Button)findViewById(R.id.button_off);
+        Button on = (Button)findViewById(R.id.button_on);
+        TextView textView = (TextView) findViewById(R.id.textViewStatus);
 
         sendData("2");
+
+        Log.d(TAG, "disconnecting from " + device.getName());
 
         if (outStream != null) {
             try {
@@ -160,6 +134,119 @@ public class EdisonTestActivity extends Activity {
             Log.e(TAG, "Fatal Error In onPause() and failed to close socket." + e2.getMessage());
             finish();
         }
+        connected = false;
+        on.setEnabled(false);
+        off.setEnabled(false);
+        textView.setText("Disconnected");
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
+        setContentView(R.layout.activity_edison_test);
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerBt);
+        TextView status = (TextView) findViewById(R.id.textViewStatus);
+        Button off = (Button)findViewById(R.id.button_off);
+        Button on = (Button)findViewById(R.id.button_on);
+
+        off.setEnabled(false);
+        on.setEnabled(false);
+
+        status.setText(connected ? "Connected" : "Disconnected");
+
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            Log.e(TAG, "No bluetooth device");
+            finish();
+        }
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position-- == 0) {
+                    if (connected)
+                        disconnect();
+                    currentPosition = -1;
+                    return;
+                }
+
+                int i = 0;
+                for (BluetoothDevice bt : pairedDevices) {
+                    if (i == position) {
+                        device = bt;
+                        break;
+                    }
+                    i++;
+                }
+
+                if (currentPosition >= 0 && currentPosition != i)
+                    disconnect();
+                currentPosition = i;
+                connect();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Toast.makeText(getApplicationContext(), "onNothingSelected", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        Log.d(TAG, "onStart");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+        ArrayList<String> mArrayList = new ArrayList<String>();
+        ArrayAdapter<String> mArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, mArrayList);
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerBt);
+        mArrayAdapter.add("Select BT device");
+
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 1);
+        }
+
+        pairedDevices = mBluetoothAdapter.getBondedDevices();
+        // If there are paired devices
+        if (pairedDevices.size() > 0) {
+            // Loop through paired devices
+            for (BluetoothDevice bt : pairedDevices) {
+                // Add the name and address to an array adapter to show in a ListView
+                mArrayList.add(bt.getName() + ":" + bt.getAddress());
+                Log.i(TAG, bt.getName() + " " + bt.getAddress());
+                //if (bt.getName().equalsIgnoreCase("HC-06")) {
+            }
+        } else {
+            Log.e(TAG, "no device to pair");
+            finish();
+        }
+
+        mBluetoothAdapter.cancelDiscovery();
+
+        spinner.setAdapter(mArrayAdapter);
+
+        if (currentPosition >= 0) {
+            Log.d(TAG, "current positon " + currentPosition);
+            //connect();
+            spinner.setSelection(currentPosition + 1);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+
+        disconnect();
     }
 
     @Override
@@ -178,6 +265,11 @@ public class EdisonTestActivity extends Activity {
 
     public void sendData(String message) {
         byte[] msgBuffer = message.getBytes();
+
+        if (!connected) {
+            Toast.makeText(getApplicationContext(), "Not connected", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         Log.d(TAG, "...Sending data: " + message + "...");
 

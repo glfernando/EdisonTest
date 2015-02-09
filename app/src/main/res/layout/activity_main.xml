@@ -24,5 +24,6 @@
         android:layout_below="@+id/textView"
         android:layout_centerHorizontal="true"
         android:padding="15dp"
-        android:background="@android:color/holo_blue_light"/>
+        android:background="@android:color/holo_blue_light"
+        android:onClick="onClickButton"/>
 </RelativeLayout>

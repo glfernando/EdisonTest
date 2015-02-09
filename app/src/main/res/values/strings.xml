@@ -7,5 +7,7 @@
     <string name="on_button">ON</string>
     <string name="off_button">off</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_gpio">GpioActivity</string>
+    <string name="gpio_button">GPIO</string>
 
 </resources>
