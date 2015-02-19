@@ -1,41 +1,47 @@
 package me.no_ip.glfernando.edisontest;
 
 import android.app.Activity;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 
-public class EdisonTestActivity extends Activity {
+public class EdisonTestActivity extends ActionBarActivity implements NavigationDrawerFragment.DrawerFragmentComm, EdisonComm {
 
     private static final String TAG = "EdisonTest";
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothSocket btSocket = null;
-    private OutputStream outStream = null;
+    public OutputStream outStream = null;
     private boolean connected = false;
     private Set<BluetoothDevice> pairedDevices;
     private static BluetoothDevice device;
     private static int currentPosition = -1;
+
     // Well known SPP UUID
     //private static final UUID MY_UUID =
     //       UUID.fromString("00001101-0000-1000-8000-00805F9B34FF");
@@ -54,14 +60,7 @@ public class EdisonTestActivity extends Activity {
         //
     }
 
-    public void onClickGPIO(View v) {
-        Intent i = new Intent(EdisonTestActivity.this, GpioActivity.class);
-        startActivity(i);
-    }
-
     public void connect() {
-        Button off = (Button)findViewById(R.id.button_off);
-        Button on = (Button)findViewById(R.id.button_on);
         TextView textView = (TextView) findViewById(R.id.textViewStatus);
         Spinner spinner = (Spinner) findViewById(R.id.spinnerBt);
 
@@ -104,14 +103,10 @@ public class EdisonTestActivity extends Activity {
             Log.e(TAG, "Fatal Error In onResume() and output stream creation failed:" + e.getMessage());
         }
         connected = true;
-        on.setEnabled(true);
-        off.setEnabled(true);
         textView.setText("Connected");
     }
 
     public void disconnect() {
-        Button off = (Button)findViewById(R.id.button_off);
-        Button on = (Button)findViewById(R.id.button_on);
         TextView textView = (TextView) findViewById(R.id.textViewStatus);
 
         sendData("2");
@@ -135,8 +130,6 @@ public class EdisonTestActivity extends Activity {
             finish();
         }
         connected = false;
-        on.setEnabled(false);
-        off.setEnabled(false);
         textView.setText("Disconnected");
     }
 
@@ -147,11 +140,14 @@ public class EdisonTestActivity extends Activity {
         setContentView(R.layout.activity_edison_test);
         Spinner spinner = (Spinner) findViewById(R.id.spinnerBt);
         TextView status = (TextView) findViewById(R.id.textViewStatus);
-        Button off = (Button)findViewById(R.id.button_off);
-        Button on = (Button)findViewById(R.id.button_on);
+        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        off.setEnabled(false);
-        on.setEnabled(false);
+        NavigationDrawerFragment drawerFragment  = (NavigationDrawerFragment)getSupportFragmentManager().findFragmentById(R.id.left_drawer);
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout.setStatusBarBackgroundColor(getResources().getColor(R.color.primary_dark));
+        drawerFragment.setUp((DrawerLayout)findViewById(R.id.drawer_layout), toolbar);
 
         status.setText(connected ? "Connected" : "Disconnected");
 
@@ -223,7 +219,6 @@ public class EdisonTestActivity extends Activity {
                 // Add the name and address to an array adapter to show in a ListView
                 mArrayList.add(bt.getName() + ":" + bt.getAddress());
                 Log.i(TAG, bt.getName() + " " + bt.getAddress());
-                //if (bt.getName().equalsIgnoreCase("HC-06")) {
             }
         } else {
             Log.e(TAG, "no device to pair");
@@ -245,8 +240,8 @@ public class EdisonTestActivity extends Activity {
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-
-        disconnect();
+        if (connected)
+            disconnect();
     }
 
     @Override
@@ -303,4 +298,16 @@ public class EdisonTestActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void updateFragment(int position) {
+        if (position == 1) {
+            Fragment frag = new GpioFragment();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.add(R.id.fragment_container, frag, "gpio");
+            transaction.addToBackStack(null);
+            transaction.commit();
+        } else {
+            Toast.makeText(this, "No implemented", Toast.LENGTH_SHORT).show();
+        }
+    }
 }

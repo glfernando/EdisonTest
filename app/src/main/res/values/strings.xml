@@ -9,5 +9,17 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_gpio">GpioActivity</string>
     <string name="gpio_button">GPIO</string>
+    <string-array name="drawer_options">
+        <item>Home</item>
+        <item>GPIO</item>
+        <item>PWM</item>
+        <item>i2c</item>
+        <item>SPI</item>
+        <item>SPI2</item>
+    </string-array>
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
 
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -1,0 +1,27 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:id="@+id/navigation_drawer_fragment"
+    android:layout_height="match_parent"
+    android:background="#fffff8f8"
+    tools:context="me.no_ip.glfernando.edisontest.NavigationDrawerFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <ImageView
+        android:paddingTop="48dp"
+        android:layout_width="280dp"
+        android:layout_height="250dp"
+        android:id="@+id/drawer_icon"
+        android:paddingBottom="16dp"
+        android:src="@drawable/edison_icon"
+        android:background="@color/primary"
+        />
+    <ListView
+        android:id="@+id/drawer_list"
+        android:layout_width="280dp"
+        android:layout_height="match_parent"
+        android:layout_below="@id/drawer_icon"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        />
+
+</RelativeLayout>
